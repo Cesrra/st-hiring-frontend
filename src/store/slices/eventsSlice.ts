@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import axios from 'axios';
+import { AxiosError } from 'axios';
 import { RootState } from '../index';
+import apiClient from '../../utils/apiClient';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -26,14 +27,14 @@ const initialState: EventsState = {
 
 export const fetchEvents = createAsyncThunk<Event[], void, { rejectValue: string }>('events/fetchEvents', async (_, { rejectWithValue }) => {
   try {
-    const response = await axios.get(`${API_URL}/events`);
+    const response = await apiClient.get(`${API_URL}/events`);
     return response.data;
-  } catch (error: any) {
-    return rejectWithValue(error.response?.data || 'Failed to fetch events');
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    return rejectWithValue(axiosError.response?.data as string || 'Failed to fetch events');
   }
 });
 
-// Slice
 const eventsSlice = createSlice({
   name: 'events',
   initialState,
@@ -48,7 +49,7 @@ const eventsSlice = createSlice({
         state.loading = false;
         state.events = action.payload;
       })
-      .addCase(fetchEvents.rejected, (state, action: PayloadAction<any>) => {
+      .addCase(fetchEvents.rejected, (state, action: PayloadAction<string | undefined>) => {
         state.loading = false;
         state.error = action.payload || 'Failed to fetch events';
       });

@@ -1,48 +1,94 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import axios from 'axios';
 import { RootState } from '../index';
+import apiClient from '../../utils/apiClient';
+import { AxiosError } from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+interface DeliveryMethod {
+  name: string;
+  enum: string;
+  order: number;
+  isDefault: boolean;
+  selected: boolean;
+}
+
+interface FulfillmentFormat {
+  rfid: boolean;
+  print: boolean;
+}
+
 export interface Settings {
+  _id?: string;
   clientId: number;
-  deliveryMethods: any[];
-  fulfillmentFormat: Record<string, boolean>;
-  [key: string]: any;
+  deliveryMethods: DeliveryMethod[];
+  fulfillmentFormat: FulfillmentFormat;
+  printer: {
+    id: number | null;
+  };
+  printingFormat: {
+    formatA: boolean;
+    formatB: boolean;
+  };
+  scanning: {
+    scanManually: boolean;
+    scanWhenComplete: boolean;
+  };
+  paymentMethods: {
+    cash: boolean;
+    creditCard: boolean;
+    comp: boolean;
+  };
+  ticketDisplay: {
+    leftInAllotment: boolean;
+    soldOut: boolean;
+  };
+  customerInfo: {
+    active: boolean;
+    basicInfo: boolean;
+    addressInfo: boolean;
+  };
 }
 
 export interface SettingsState {
-  settings: Settings | null;
+  data: Settings | null;
   loading: boolean;
   error: string | null;
 }
 
 const initialState: SettingsState = {
-  settings: null,
+  data: null,
   loading: false,
   error: null,
 };
 
-export const fetchSettings = createAsyncThunk<Settings, number, { rejectValue: string }>('settings/fetchSettings', async (clientId: number, { rejectWithValue }) => {
+export const fetchSettings = createAsyncThunk<
+  Settings,
+  number,
+  { rejectValue: string }
+>('settings/fetchSettings', async (clientId, { rejectWithValue }) => {
   try {
-    const response = await axios.get(`${API_URL}/settings/${clientId}`);
+    const response = await apiClient.get<Settings>(`${API_URL}/settings/${clientId}`);
     return response.data;
-  } catch (error: any) {
-    return rejectWithValue(error.response?.data || 'Failed to fetch settings');
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    return rejectWithValue(axiosError.response?.data as string || 'Failed to fetch settings');
   }
 });
 
-export const updateSettings = createAsyncThunk<Settings, { clientId: number; settings: Settings }, { rejectValue: string }>(
-  'settings/updateSettings',
-  async ({ clientId, settings }: { clientId: number; settings: Settings }, { rejectWithValue }) => {
-    try {
-      const response = await axios.put(`${API_URL}/settings/${clientId}`, settings);
-      return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data || 'Failed to update settings');
-    }
+export const updateSettings = createAsyncThunk<
+  Settings,
+  { clientId: number; settings: Settings },
+  { rejectValue: string }
+>('settings/updateSettings', async ({ clientId, settings }, { rejectWithValue }) => {
+  try {
+    const response = await apiClient.put<Settings>(`${API_URL}/settings/${clientId}`, settings);
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    return rejectWithValue(axiosError.response?.data as string || 'Failed to update settings');
   }
-);
+});
 
 const settingsSlice = createSlice({
   name: 'settings',
@@ -56,9 +102,9 @@ const settingsSlice = createSlice({
       })
       .addCase(fetchSettings.fulfilled, (state, action: PayloadAction<Settings>) => {
         state.loading = false;
-        state.settings = action.payload;
+        state.data = action.payload;
       })
-      .addCase(fetchSettings.rejected, (state, action: PayloadAction<any>) => {
+      .addCase(fetchSettings.rejected, (state, action: PayloadAction<string | undefined>) => {
         state.loading = false;
         state.error = action.payload || 'Failed to fetch settings';
       })
@@ -68,16 +114,16 @@ const settingsSlice = createSlice({
       })
       .addCase(updateSettings.fulfilled, (state, action: PayloadAction<Settings>) => {
         state.loading = false;
-        state.settings = action.payload;
+        state.data = action.payload;
       })
-      .addCase(updateSettings.rejected, (state, action: PayloadAction<any>) => {
+      .addCase(updateSettings.rejected, (state, action: PayloadAction<string | undefined>) => {
         state.loading = false;
         state.error = action.payload || 'Failed to update settings';
       });
   },
 });
 
-export const selectSettings = (state: RootState) => state.settings.settings;
+export const selectSettings = (state: RootState) => state.settings.data;
 export const selectSettingsLoading = (state: RootState) => state.settings.loading;
 export const selectSettingsError = (state: RootState) => state.settings.error;
 
