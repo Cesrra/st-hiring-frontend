@@ -77,13 +77,13 @@ export const fetchSettings = createAsyncThunk<
 });
 
 export const updateSettings = createAsyncThunk<
-  Settings,
+  void,
   { clientId: number; settings: Settings },
   { rejectValue: string }
 >('settings/updateSettings', async ({ clientId, settings }, { rejectWithValue }) => {
   try {
-    const response = await apiClient.put<Settings>(`${API_URL}/settings/${clientId}`, settings);
-    return response.data;
+    await apiClient.put<Settings>(`${API_URL}/settings/${clientId}`, settings);
+    await fetchSettings(clientId);
   } catch (error) {
     const axiosError = error as AxiosError;
     return rejectWithValue(axiosError.response?.data as string || 'Failed to update settings');
@@ -112,9 +112,8 @@ const settingsSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(updateSettings.fulfilled, (state, action: PayloadAction<Settings>) => {
+      .addCase(updateSettings.fulfilled, (state) => {
         state.loading = false;
-        state.data = action.payload;
       })
       .addCase(updateSettings.rejected, (state, action: PayloadAction<string | undefined>) => {
         state.loading = false;
