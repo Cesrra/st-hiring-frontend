@@ -2,22 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { AxiosError } from 'axios';
 import { RootState } from '../index';
 import apiClient from '../../utils/apiClient';
-
-const API_URL = import.meta.env.VITE_API_URL;
-
-export interface Event {
-  id: number;
-  name: string;
-  description: string;
-  location: string | null;
-  date: string;
-}
-
-export interface EventsState {
-  events: Event[];
-  loading: boolean;
-  error: string | null;
-}
+import { Event, EventsState } from '../../types';
 
 const initialState: EventsState = {
   events: [],
@@ -27,7 +12,7 @@ const initialState: EventsState = {
 
 export const fetchEvents = createAsyncThunk<Event[], void, { rejectValue: string }>('events/fetchEvents', async (_, { rejectWithValue }) => {
   try {
-    const response = await apiClient.get(`${API_URL}/events`);
+    const response = await apiClient.get(`/events`);
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError;

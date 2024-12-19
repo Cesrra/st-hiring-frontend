@@ -5,9 +5,9 @@ function App() {
   return (
     <Container
       maxWidth="lg"
-      style={{
-        minWidth: "90vw",
-        minHeight: "100vh",
+      sx={{
+        width: "100%",
+        height: "100%",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",

@@ -24,8 +24,8 @@ const EventList: React.FC = () => {
   }
 
   return (
-    <Grid container spacing={2} style={{ padding: '16px' }}>
-      <Typography variant="h3" gutterBottom style={{ minWidth: "100vw", textAlign: "center", marginTop: "10px" }}>
+    <Grid container spacing={2} sx={{ padding: 2 }}>
+      <Typography variant="h3" sx={{ textAlign: 'center', width: '100%', marginBottom: 2 }}>
         See Tickets
       </Typography>
       {events.map((event) => (

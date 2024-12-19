@@ -10,14 +10,20 @@ interface EventCardProps {
 
 const EventCard: React.FC<EventCardProps> = ({ name, description, location, date }) => {
   return (
-    <Card style={{ margin: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+    <Card sx={{ margin: 2, boxShadow: 3 }}>
       <CardContent>
-        <Typography variant="h5">{name}</Typography>
+        <Typography variant="h5" color="text.primary">
+            {name}
+        </Typography>
         <Typography variant="body2" color="text.secondary">
           {description}
         </Typography>
-        <Typography variant="body2">Location: {location || 'TBD'}</Typography>
-        <Typography variant="body2">Date: {new Date(date).toLocaleString()}</Typography>
+        <Typography variant="body2">
+          Location: {location || 'TBD'}
+        </Typography>
+        <Typography variant="body2">
+          Date: {new Date(date).toLocaleString()}
+        </Typography>
       </CardContent>
     </Card>
   );

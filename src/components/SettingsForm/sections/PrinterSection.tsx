@@ -1,8 +1,9 @@
 import React from 'react';
 import { TextField, Typography } from '@mui/material';
+import { Printer } from '../../../types';
 
 interface PrinterSectionProps {
-  printer: { id: number | null };
+  printer: Printer;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 

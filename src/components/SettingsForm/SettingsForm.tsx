@@ -1,82 +1,46 @@
 import React, { useEffect } from 'react';
 import { Formik, Form } from 'formik';
-import { useDispatch, useSelector } from 'react-redux';
 import { Box, Button, Typography } from '@mui/material';
-import { AppDispatch, RootState } from '../../store';
-import { Settings, updateSettings, fetchSettings } from '../../store/slices/settingsSlice';
-import DeliveryMethodsSection from './DeliveryMethodsSection';
-import FulfillmentFormatSection from './FulfillmentFormatSection';
-import ScanningSection from './ScanningSection';
-import PaymentMethodsSection from './PaymentMethodsSection';
-import TicketDisplaySection from './TicketDisplaySection';
-import PrintingFormatSection from './PrintingFormatSection';
-import PrinterSection from './PrinterSection';
-import CustomerInfoSection from './CustomerInfoSection';
-import * as Yup from 'yup';
+import { useSettingsForm } from '../../hooks/useSettingsForm';
+import CustomerInfoSection from './sections/CustomerInfoSection';
+import DeliveryMethodsSection from './sections/DeliveryMethodsSection';
+import FulfillmentFormatSection from './sections/FulfillmentFormatSection';
+import PaymentMethodsSection from './sections/PaymentMethodsSection';
+import PrinterSection from './sections/PrinterSection';
+import PrintingFormatSection from './sections/PrintingFormatSection';
+import ScanningSection from './sections/ScanningSection';
+import TicketDisplaySection from './sections/TicketDisplaySection';
+import { Settings } from '../../types';
+import { settingsValidationSchema } from '../../utils/validationSchemas';
 
 const SettingsForm: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
-
-  const settings = useSelector((state: RootState) => state.settings.data);
-  const loading = useSelector((state: RootState) => state.settings.loading);
-  const error = useSelector((state: RootState) => state.settings.error);
+  const { settings, loading, error, fetchSettingsData, saveSettings } = useSettingsForm();
 
   useEffect(() => {
-    dispatch(fetchSettings(1));
-  }, [dispatch]);
-
-  const validationSchema = Yup.object({
-    deliveryMethods: Yup.array().required(),
-    fulfillmentFormat: Yup.object().required(),
-    scanning: Yup.object().required(),
-    paymentMethods: Yup.object().required(),
-  });
-
-  const initialValues: Settings = settings || {
-    clientId: 1,
-    deliveryMethods:[
-      {
-        name: 'Print Now',
-        enum: 'PRINT_NOW',
-        order: 1,
-        isDefault: true,
-        selected: false,
-      },
-      {
-        name: 'Print@Home',
-        enum: 'PRINT_AT_HOME',
-        order: 2,
-        isDefault: false,
-        selected: false,
-      },
-    ],
-    fulfillmentFormat: { rfid: false, print: false },
-    scanning: { scanManually: false, scanWhenComplete: false },
-    paymentMethods: { cash: false, creditCard: false, comp: false },
-    printer: { id: null },
-    printingFormat: { formatA: true, formatB: false },
-    ticketDisplay: { leftInAllotment: true, soldOut: true },
-    customerInfo: { active: false, basicInfo: false, addressInfo: false },
-  };
-
+    if (!settings) {
+      fetchSettingsData(1);
+    }
+  }, [settings, fetchSettingsData]);
+  
   const handleSubmit = (values: Settings) => {
-    const payload = { ...values };
-    delete payload._id;
-    dispatch(updateSettings({ clientId: 1, settings: payload }));
+    saveSettings(values);
   };
+
+  if (!settings) {
+    return <Typography>Loading initial data...</Typography>;
+  }
 
   return (
-    <Box sx={{ maxWidth: 800, margin: 'auto' }}>
-      <Typography variant="h3" gutterBottom>
+    <Box sx={{ maxWidth: 800 }}>
+      <Typography variant="h3" gutterBottom color="text.primary">
         Update Settings
       </Typography>
 
-      {loading && <Typography>Loading...</Typography>}
       {error && <Typography color="error">{error}</Typography>}
 
-      <Formik 
-        initialValues={initialValues}
-        validationSchema={validationSchema}
+      <Formik
+        initialValues={settings}
+        validationSchema={settingsValidationSchema}
         onSubmit={handleSubmit}
         enableReinitialize
       >
@@ -91,8 +55,21 @@ const SettingsForm: React.FC = () => {
             <TicketDisplaySection display={values.ticketDisplay} onChange={handleChange} />
             <CustomerInfoSection info={values.customerInfo} onChange={handleChange} />
 
-            <Box mt={2}>
-              <Button type="submit" variant="contained" color="primary" disabled={loading}>
+            <Box mt={3} sx={{ display: 'flex', justifyContent: 'center' }}>
+              <Button 
+                type="submit" 
+                variant="contained" 
+                color="primary" 
+                disabled={loading}
+                sx={{
+                  display: 'block',
+                  margin: '0 auto',
+                  width: {
+                    xs: "95%",
+                    md: "50%",
+                  },
+                }}
+                >
                 Save Settings
               </Button>
             </Box>

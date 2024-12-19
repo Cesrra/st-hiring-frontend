@@ -2,59 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../index';
 import apiClient from '../../utils/apiClient';
 import { AxiosError } from 'axios';
-
-const API_URL = import.meta.env.VITE_API_URL;
-
-interface DeliveryMethod {
-  name: string;
-  enum: string;
-  order: number;
-  isDefault: boolean;
-  selected: boolean;
-}
-
-interface FulfillmentFormat {
-  rfid: boolean;
-  print: boolean;
-}
-
-export interface Settings {
-  _id?: string;
-  clientId: number;
-  deliveryMethods: DeliveryMethod[];
-  fulfillmentFormat: FulfillmentFormat;
-  printer: {
-    id: number | null;
-  };
-  printingFormat: {
-    formatA: boolean;
-    formatB: boolean;
-  };
-  scanning: {
-    scanManually: boolean;
-    scanWhenComplete: boolean;
-  };
-  paymentMethods: {
-    cash: boolean;
-    creditCard: boolean;
-    comp: boolean;
-  };
-  ticketDisplay: {
-    leftInAllotment: boolean;
-    soldOut: boolean;
-  };
-  customerInfo: {
-    active: boolean;
-    basicInfo: boolean;
-    addressInfo: boolean;
-  };
-}
-
-export interface SettingsState {
-  data: Settings | null;
-  loading: boolean;
-  error: string | null;
-}
+import { Settings, SettingsState } from '../../types';
 
 const initialState: SettingsState = {
   data: null,
@@ -68,7 +16,7 @@ export const fetchSettings = createAsyncThunk<
   { rejectValue: string }
 >('settings/fetchSettings', async (clientId, { rejectWithValue }) => {
   try {
-    const response = await apiClient.get<Settings>(`${API_URL}/settings/${clientId}`);
+    const response = await apiClient.get<Settings>(`/settings/${clientId}`);
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError;
@@ -82,7 +30,7 @@ export const updateSettings = createAsyncThunk<
   { rejectValue: string }
 >('settings/updateSettings', async ({ clientId, settings }, { rejectWithValue }) => {
   try {
-    await apiClient.put<Settings>(`${API_URL}/settings/${clientId}`, settings);
+    await apiClient.put<Settings>(`/settings/${clientId}`, settings);
     await fetchSettings(clientId);
   } catch (error) {
     const axiosError = error as AxiosError;
